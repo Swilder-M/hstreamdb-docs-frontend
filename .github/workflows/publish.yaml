@@ -1,0 +1,33 @@
+name: Publish Container
+
+on: 
+  push:
+    tags:
+      - v*
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: set version
+      run: |
+        BRANCH=$(echo ${{ github.ref }} | sed -r  "s ^refs/heads/|^refs/tags/v(.*) \1 g")
+        echo "VERSION=$BRANCH" >> $GITHUB_ENV
+
+    - name: login docker
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: Swilder-M
+        password: ${{ secrets.PUBLISH_GITHUB_TOKEN }}
+
+    - name: build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: Swilder-M/hstreamdb-docs-frontend:${VERSION}
+        secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.PUBLISH_GITHUB_TOKEN }}
